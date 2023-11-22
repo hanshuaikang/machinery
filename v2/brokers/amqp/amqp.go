@@ -370,7 +370,7 @@ func (b *Broker) delay(signature *tasks.Signature, delayMs int64) error {
 		// after that message will expire and be sent to destination.
 		"x-message-ttl": delayMs,
 		// Time after that the queue will be deleted.
-		"x-expires": delayMs * 2,
+		//"x-expires": delayMs * 2,
 	}
 	conn, channel, _, _, _, err := b.Connect(
 		b.GetConfig().Broker,
