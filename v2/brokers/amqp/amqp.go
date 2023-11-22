@@ -356,8 +356,7 @@ func (b *Broker) delay(signature *tasks.Signature, delayMs int64) error {
 
 	// It's necessary to redeclare the queue each time (to zero its TTL timer).
 	queueName := fmt.Sprintf(
-		"delay.%d.%s.%s",
-		delayMs, // delay duration in mileseconds
+		"delay.%s.%s",
 		b.GetConfig().AMQP.Exchange,
 		signature.RoutingKey, // routing key
 	)
@@ -372,6 +371,7 @@ func (b *Broker) delay(signature *tasks.Signature, delayMs int64) error {
 		// Time after that the queue will be deleted.
 		//"x-expires": delayMs * 2,
 	}
+
 	conn, channel, _, _, _, err := b.Connect(
 		b.GetConfig().Broker,
 		b.GetConfig().MultipleBrokerSeparator,
@@ -380,7 +380,7 @@ func (b *Broker) delay(signature *tasks.Signature, delayMs int64) error {
 		b.GetConfig().AMQP.ExchangeType, // exchange type
 		queueName,                       // queue name
 		true,                            // queue durable
-		b.GetConfig().AMQP.AutoDelete,   // queue delete when unused
+		false,                           // queue delete when unused
 		queueName,                       // queue binding key
 		nil,                             // exchange declare args
 		declareQueueArgs,                // queue declare args
