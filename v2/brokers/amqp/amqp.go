@@ -345,6 +345,7 @@ func (b *Broker) consumeOne(delivery amqp.Delivery, taskProcessor iface.TaskProc
 // with appropriate ttl expiration headers, after the expiration, it is sent to
 // the proper queue with consumers
 func (b *Broker) delay(signature *tasks.Signature, delayMs int64) error {
+
 	if delayMs <= 0 {
 		return errors.New("Cannot delay task by 0ms")
 	}
@@ -360,16 +361,13 @@ func (b *Broker) delay(signature *tasks.Signature, delayMs int64) error {
 		b.GetConfig().AMQP.Exchange,
 		signature.RoutingKey, // routing key
 	)
+
 	declareQueueArgs := amqp.Table{
 		// Exchange where to send messages after TTL expiration.
 		"x-dead-letter-exchange": b.GetConfig().AMQP.Exchange,
 		// Routing key which use when resending expired messages.
 		"x-dead-letter-routing-key": signature.RoutingKey,
 		// Time in milliseconds
-		// after that message will expire and be sent to destination.
-		"x-message-ttl": delayMs,
-		// Time after that the queue will be deleted.
-		//"x-expires": delayMs * 2,
 	}
 
 	conn, channel, _, _, _, err := b.Connect(
@@ -402,6 +400,7 @@ func (b *Broker) delay(signature *tasks.Signature, delayMs int64) error {
 			ContentType:  "application/json",
 			Body:         message,
 			DeliveryMode: amqp.Persistent,
+			Expiration:   fmt.Sprintf("%d", delayMs),
 		},
 	); err != nil {
 		return err
